@@ -414,7 +414,14 @@ fn main() {
         .clang_args(get_extra_clang_args_for_bindgen())
         .clang_args(&["-I", &include_path]);
 
+    let host = std::env::var("HOST").unwrap();
     let target = std::env::var("TARGET").unwrap();
+
+    if host != target && target_os == "windows" && !host.contains("windows") {
+        let path = std::env::var("SYSROOT").expect("Please set SYSROOT for windows build");
+        builder = builder.clang_args(&["-I", &path]);
+    }
+
     match target.as_ref() {
         // bindgen produces alignment tests that cause undefined behavior [1]
         // when applied to explicitly unaligned types like OSUnalignedU64.
